@@ -25,6 +25,18 @@ fn get_max_brightness() -> std::io::Result<i32> {
         .expect("max brightnesss does not cleanly parse as i32"))
 }
 
+fn get_current_brightness() -> std::io::Result<i32> {
+    let mut current_brightness_file =
+        File::open("/sys/class/backlight/intel_backlight/brightness")?;
+    let mut current_brightness_buffer = String::new();
+    // POP removes trailing newline
+    current_brightness_file.read_to_string(&mut current_brightness_buffer)?;
+    current_brightness_buffer.pop();
+    Ok(current_brightness_buffer
+        .parse::<i32>()
+        .expect("max brightnesss does not cleanly parse as i32"))
+}
+
 fn set_brightness_percentage(brightness: i32) -> std::io::Result<()> {
     let percentage = (get_max_brightness().expect("max brightnesss does not cleanly parse as i32")
         / 100)
@@ -37,6 +49,31 @@ fn set_brightness_percentage(brightness: i32) -> std::io::Result<()> {
     Ok(())
 }
 
+/// Changes the brightness by percentage relative to max brightness
+fn change_brightness_percentage(brightness: i32) -> std::io::Result<()> {
+    let max_brightness = get_max_brightness()?;
+    let current_brightness = get_current_brightness()?;
+    let delta_brightness = (max_brightness / 100) * brightness.abs();
+
+    trace!("{}", delta_brightness);
+    trace!("{}", brightness);
+    trace!("{}", max_brightness);
+    trace!("{}", current_brightness);
+
+    let mut new_brightness = current_brightness + delta_brightness * brightness.signum();
+
+    if new_brightness > max_brightness {
+        new_brightness = max_brightness;
+    }
+    trace!("{}", new_brightness);
+    fs::write(
+        "/sys/class/backlight/intel_backlight/brightness",
+        new_brightness.to_string(),
+    )?;
+
+    Ok(())
+}
+
 fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
 
@@ -44,6 +81,8 @@ fn main() -> std::io::Result<()> {
 
     if let Some(brightness) = matches.get_one::<i32>("percentage") {
         set_brightness_percentage(*brightness)?;
+    } else if let Some(brightness) = matches.get_one::<i32>("change") {
+        change_brightness_percentage(*brightness)?;
     } else {
         set_brightness_percentage(
             get_max_brightness().expect("max brightnesss does not cleanly parse as i32"),

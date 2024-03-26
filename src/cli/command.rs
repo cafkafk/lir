@@ -16,7 +16,14 @@ pub fn build_cli() -> Command {
         .author(crate_authors!("\n"))
         //.arg(arg!(--init ... "Init config.yaml"))
         .arg(
-            arg!(-p --percentage [percentage] "Set brightness by percentage")
+            arg!(-p --percentage <percentage> "Set brightness by percentage.")
+                .required(false)
+                .value_parser(value_parser!(i32)),
+        )
+        .arg(
+            arg!(change: -c --change <change> "Change brightness by percentage.")
+                .required(false)
+                .allow_hyphen_values(true)
                 .value_parser(value_parser!(i32)),
         )
 }
