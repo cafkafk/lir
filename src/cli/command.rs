@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 Christina Sørensen
+// SPDX-FileCopyrightText: 2023-2024 Christina Sørensen
 // SPDX-FileContributor: Christina Sørensen
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -26,4 +26,5 @@ pub fn build_cli() -> Command {
                 .allow_hyphen_values(true)
                 .value_parser(value_parser!(i32)),
         )
+        .arg(arg!(get: --get "Get current brightness.").required(false))
 }

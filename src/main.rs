@@ -37,6 +37,13 @@ fn get_current_brightness() -> std::io::Result<i32> {
         .expect("max brightnesss does not cleanly parse as i32"))
 }
 
+fn get_current_brightness_percentage() -> std::io::Result<f32> {
+    let max_brightness = get_max_brightness()?;
+    let current_brightness = get_current_brightness()?;
+
+    Ok((current_brightness as f32 / max_brightness as f32) * 100.)
+}
+
 fn set_brightness_percentage(brightness: i32) -> std::io::Result<()> {
     let percentage = (get_max_brightness().expect("max brightnesss does not cleanly parse as i32")
         / 100)
@@ -83,6 +90,11 @@ fn main() -> std::io::Result<()> {
         set_brightness_percentage(*brightness)?;
     } else if let Some(brightness) = matches.get_one::<i32>("change") {
         change_brightness_percentage(*brightness)?;
+    } else if matches.get_flag("get") {
+        println!(
+            "{}%",
+            get_current_brightness_percentage().expect("failed to get current brightness") as i32
+        );
     } else {
         set_brightness_percentage(
             get_max_brightness().expect("max brightnesss does not cleanly parse as i32"),
